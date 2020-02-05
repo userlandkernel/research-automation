@@ -1,4 +1,4 @@
-# research-automation
+# Research Automation
 Automating research with scripts
 
 ## jtool2c
