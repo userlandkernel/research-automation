@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+# JTOOL2 is software by Jonathan Levin (http://newosxbook.com)
+# This script uses jtool2 to generate c structures for using kernel symbol offsets
+# This script is licensed under the MIT License
+# (c) Sem Voigtlander (@userlandkernel) https://kernelprogrammer.com
+
+INFILE="$1"
+
+if ! [ -f "$INFILE" ]; then
+	echo "Usage: jtool2c [/path/to/kernelcache]";
+	exit 1;
+fi
+
+WORKSPACE="$(pwd)"
+JTOOL_REMOTE="http://newosxbook.com/files/jtool2.tgz"
+SYSTEM="$(uname -s)"
+
+if ! [ -x "$(command -v jtool2)" ]; then
+
+	echo "Downloading jtool2 from $JTOOL_REMOTE..."
+	curl -s "$JTOOL_REMOTE" -o /tmp/jtool2.tgz
+
+	echo "Extacting jtool2 tarball..."
+	cd /tmp/
+	tar xvf jtool2.tgz
+
+	echo "Installing jtool2 on $SYSTEM..."
+	if [[ $SYSTEM == *"Darwin"* ]]; then
+		mv jtool2 /usr/local/bin/jtool2
+		mv disarm /usr/local/bin/disarm
+		mv matchers.txt /usr/local/bin
+
+	elif [[ $SYSTEM == *"Linux"* ]]; then
+		mv jtool2.ELF64 /usr/local/bin/jtool2
+		mv matchers.txt /usr/local/bin
+	fi
+
+	echo "Cleaning up installation files..."
+	for file in "/tmp/jtool2*"; do
+		rm "$file"
+	done
+
+	if [ -f /tmp/WhatsNew.txt ]; then
+		rm /tmp/WhatsNew.txt
+	fi
+
+	if [ -f /tmp/disarm ]; then
+		rm /tmp/disarm
+	fi
+
+	if [ -f /tmp/matchers.txt ]; then
+		rm /tmp/matchers.txt
+	fi
+
+	# Hop back to the workspace
+	cd "$WORKSPACE"
+
+	if ! [ -x "$(command -v jtool2)" ]; then
+		echo "jtool2 installation failed."
+		exit 1;
+	else
+		echo "jtool2 installed successfully."
+	fi
+fi
+
+echo "Decompressing $INFILE..."
+jtool2 -dec "$INFILE" 1>&2 2>/dev/null
+
+if [ -f "/tmp/kernel" ]; then
+	cp "/tmp/kernel" "$INFILE.decompressed"
+	INFILE="/tmp/kernel"
+fi
+
+# Get kernel version
+KERNEL_VERS=$(cat "$INFILE" | strings | grep -e "Darwin Kernel Version" | tail -n 1)
+KSTRUCT_NAME=$(cat "$INFILE" | strings | grep -e "Darwin Kernel Version" | tail -n 1 | sed -e 's/.*xnu-//g' -e 's/\./_/g' -e 's/~//g' -e 's/\///g' -e 's/RELEASE_ARM64//g')
+
+echo "Darwin Kernel Version: $KERNEL_VERS"
+KSTRUCT_NAME="offsets_$KSTRUCT_NAME"
+
+echo "Retrieving symbols..."
+SYMBOLS=$(jtool2 -S "$INFILE" | awk '{print $3" "$1}')
+SYMBOL_COUNT=$(echo "$SYMBOLS" | wc -l)
+
+echo "Found $SYMBOL_COUNT symbols."
+
+echo "Retrieving kernel extensions..."
+KEXTS=$(jtool2 -k "$INFILE" | sed -e 's/:/ /g' | awk '{print "#define "$2" "$1}' | sed -e 's/\./_/g')
+
+# Generate C file
+NAMES=$(echo "$SYMBOLS" | awk '{print $1}')
+OUTFILE_C="$KSTRUCT_NAME.c"
+OUTFILE_H="$KSTRUCT_NAME.h"
+
+echo "Generating $OUTFILE_H..."
+
+echo "#include <stdint.h>" > "$OUTFILE_H"
+echo "/* $KERNEL_VERS */" >> "$OUTFILE_H"
+echo "$KEXTS" >> "$OUTFILE_H"
+echo " " >> "$OUTFILE_H"
+echo "struct $KSTRUCT_NAME {" >> "$OUTFILE_H"
+echo "$NAMES" | awk '{print "\tuint64_t "$1";"}' >> "$OUTFILE_H"
+echo "};" >> "$OUTFILE_H"
+
+echo "Generating $OUTFILE_C..."
+
+echo "#include \"$OUTFILE_H\"" > "$OUTFILE_C"
+echo "/* $KERNEL_VERS */" >> "$OUTFILE_C"
+echo "struct $KSTRUCT_NAME $KSTRUCT_NAME = {" >> "$OUTFILE_C"
+echo "$SYMBOLS" | awk '{print "\t." $1 " = 0x" $2 ","}' >> "$OUTFILE_C"
+echo "};" >> "$OUTFILE_C"
+
+echo "Testing wether $OUTFILE_C can be built..."
+
+TESTFILE=$(echo "$OUTFILE_C" | sed -e 's/\.c/\.o/g')
+if clang -c "$OUTFILE_C" -o "$TESTFILE"; then
+        echo "Successfully generated $OUTFILE_C."
+        rm "$TESTFILE"
+else
+        echo "Failed compile test for generated offsets"
+        exit 2;
+fi

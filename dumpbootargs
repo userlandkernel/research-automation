@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+INFILE="$1"
+COMPANION=$(ls | grep "$1.ARM64")
+COMPANION="$COMPANION"
+if ! [ -f "$COMPANION" ]; then
+	if ! [ -f "$INFILE" ]; then
+		echo "Usage: $0 [kernelcache]"
+		exit 1;
+	else
+		echo "Analyzing kernel..."
+		jtool2 --analyze "$INFILE" > /dev/null
+		COMPANION=$(ls | grep "$1.ARM64")
+		COMPANION="$COMPANION"
+		if ! [ -f "$COMPANION" ]; then
+			echo "Usage: $0 [kernelcache]"
+			exit 1;
+		fi
+	fi
+	exit 1;
+fi
+echo "Retrieving offset for PE_parse_boot_argn_internal..."
+PE_PARSE_BOOT_ARGN_INTERNAL=$(cat "$COMPANION" | sed -e 's/|/ /g' | grep "PE_parse_boot_argn_internal" | awk '{print $1}' | sed -e 's/0x//g')
+echo "Retrieving list of boot arguments..."
+TMP=$(jtool2 -d kernelcache.release.n71.decompressed 2> /dev/null | grep -e "_func_$PE_PARSE_BOOT_ARGN_INTERNAL" -e "PE_parse_boot_argn")
+TMP=$(echo "$TMP" | grep "(" | tr -d '\t' | sed -e 's/(/ /g' -e 's/,/ /g')
+TMP=$(echo "$TMP" | awk '{print $2}' | tr -d '"')
+echo "$TMP" > bootargs.txt
+echo "Successfully retrieved bootargs"
+open "bootargs.txt"
