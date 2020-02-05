@@ -1,5 +1,5 @@
 # Research Automation
-Automating research with scripts
+Automates your research with scripts
 
 ## jtool2c
 Uses jtool2 to generate a c file for using iOS kernel symbol offsets  
