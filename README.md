@@ -14,3 +14,4 @@ Usage is simple, pass it a compressed/uncompressed kernelcache and it will save 
 Retrieves code from userland proceses that make calls to userclients of IOKit drivers and Families.  
 This is the best approach to reverse kernel driver userclients their selectors.  
 The script is lazily written, it should be updated by someone who knows idapython a bit better.  
+Usage: In IDA choose File>Script File... and choose iokitrev.py, output will be in the IDA console.  
