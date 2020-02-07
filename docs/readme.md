@@ -54,3 +54,52 @@ $ exit
 
 
 ```
+
+You now have the kernelcache in your current directory, but its LZSS-compressed.  
+To analyze the kernelcache we will use jtool2.  
+jtool2 will automatically decompress the kernel and it can be helpful in symbolication of the stripped kernels.  
+To analyze the kernelcache you need to type:
+```bash
+jtool2 --analyze kernelcache.release.n71
+```
+You now have a .ARM64 file which contains the symbols that jtool2 could retrieve.  
+However the kernelcache is still compressed so you cannot load it into a disassembler to start reverse engineering.  
+To decompress the kernelcache you can use the -dec flag while using jtool2
+```bash
+jtool2 -dec kernelcache.release.n71
+```
+
+jtool2 stores the decompressed kernelcache at /tmp/kernel
+To move it to your current directory you can type mv /tmp/kernel ./kernelcache.release.n72.dec
+
+From this point it is easy to work with the kernelcache.
+Strings is broken on macOS when it detects unknown or invalid load commands, but you can still use a trick to get the strings.  
+```bash
+cat kernelcache.release.n71.dec | strings > kernel_strings.txt
+```
+
+Now if you want to work with kexts we can use joker, joker can extract them for us.
+To do that we provide joker the **decompressed** kernelcache.  
+```bash
+joker -K all kernelcache.release.n71.dec
+```
+That will extract all kernel extensions to /tmp/ and also generate .ARM64 symbol files for them there.  
+I generally create a folder named kexts in the current directory and move everything from /tmp to there.  
+```bash
+mv /tmp/*.kext* ./kexts/
+```
+
+With all kexts and symbol files in the kexts directory we can start the real analysis.  
+jtool2 can help with disassembly of kexts.  
+But since the kexts were extracted with joker which is old and jtool2 does not fully have kext extraction working yet we must add the kernel symbols from the kernel's .ARM64 file to all .ARM64 files of the kexts.  
+Why? You may ask. It's because the kexts use the symbols from the kernel most of the times.  
+Because the .ARM64 are very logically structured it takes a simple command to add the symbols to all kexts:
+```bash
+for kext in kexts/*.kext.ARM64.*; do 
+         cat kernelcache.release.n71.ARM64.* >> $kext;
+done
+```
+
+From this point we have all kernel extensions in one directory useful to be disassembled by a disassembler.  
+jtool2 can disasemble the kexts and the kernel, radare2 and Ghidra may do a better job.  
+For those who are used to it I can recommend IDA, it is not free software and highly expensive but a true swiss army knife.  Scripting in IDA python is pretty easy to learn and it can speed up your general research a lot.  
