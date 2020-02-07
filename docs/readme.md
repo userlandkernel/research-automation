@@ -102,5 +102,8 @@ done
 ```
 
 From this point we have all kernel extensions in one directory useful to be disassembled by a disassembler.  
-jtool2 can disasemble the kexts and the kernel, radare2 and Ghidra may do a better job.  
-For those who are used to it I can recommend IDA, it is not free software and highly expensive but a true swiss army knife.  Scripting in IDA python is pretty easy to learn and it can speed up your general research a lot.  
+Disassemblers you may find useful are:
+- jtool2 (has support for disassembling mach-o files but has not much features, does the job and is free)
+- Radare2 (Powerful disasembler, free and opensource, complex for beginners)
+- Ghidra (Amazing disassembler, free and opensource,  NSA's first not-clusterfuck)
+- IDA (Proprietary, closed source and paid, easy, swiss army knife for RE, easily scriptable) 
