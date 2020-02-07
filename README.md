@@ -1,5 +1,7 @@
 # Research Automation
 Automates your research with scripts
+Check out tutorials and documentation [here](https://github.com/userlandkernel/research-automation/tree/master/docs) 
+
 
 ## fwbrowse (BASH)
 iOS Firmware browser.  
