@@ -106,4 +106,4 @@ Disassemblers you may find useful are:
 - jtool2 (has support for disassembling mach-o files but has not much features, does the job and is free)
 - Radare2 (Powerful disasembler, free and opensource, complex for beginners)
 - Ghidra (Amazing disassembler, free and opensource,  NSA's first not-clusterfuck)
-- IDA (Proprietary, closed source and paid, easy, swiss army knife for RE, easily scriptable) 
+- IDA (Proprietary, closed source and paid, easily scriptable swiss army knife for RE) 
