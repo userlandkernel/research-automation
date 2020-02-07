@@ -107,3 +107,10 @@ Disassemblers you may find useful are:
 - Radare2 (Powerful disasembler, free and opensource, complex for beginners)
 - Ghidra (Amazing disassembler, free and opensource,  NSA's first not-clusterfuck)
 - IDA (Proprietary, closed source and paid, easily scriptable swiss army knife for RE) 
+
+### If you want to diff kernels
+- You need patience (around 2.3 hours per kernelcache for IDA + diaphora to analyze all, thus 4 hours and 20 mins in total)
+- You need [diaphora](http://diaphora.re/)
+
+## If you want to dump boot arguments to see what changed
+- Use ```dumpbootarg`` from this repo
