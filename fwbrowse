@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# (C) Sem Voigtländer 2020
+# Licensed under the MIT License
+# Software is property of PhoneCheck LLC, written by Sem Voigtländer
+
+if [ $# -ne 2 ]; then
+  echo "Usage: $0 [ios version] [device]"
+  exit 1;
+fi
+
+# Set variables
+VERSION="$1"
+DEVICE="$2"
+
+# Retrieve firmware url for device and version
+FWURL=$(curl -s "https://api.ipsw.me/v4/ipsw/$VERSION?type=ipsw" | jq | grep "$DEVICE" -A 10 | tail -n 5 | head -n 1 | sed -e 's/"url"://g' | tr -d '",\t' | sed -e 's/  //g')
+FWURL="${FWURL:1}"
+
+# Start the partialzip browser
+pzb "$FWURL"
