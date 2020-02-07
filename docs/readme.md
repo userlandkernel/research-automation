@@ -113,4 +113,4 @@ Disassemblers you may find useful are:
 - You need [diaphora](http://diaphora.re/)
 
 ### If you want to dump boot arguments to see what changed
-- Use `dumpbootarg` from this repo
+- Use `dumpbootargs` from this repo
