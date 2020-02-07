@@ -55,7 +55,8 @@ $ exit
 
 ```
 
-You now have the kernelcache in your current directory, but its LZSS-compressed.  
+You now have the kernelcache in your current directory, but its [LZSS-compressed ](https://opensource.apple.com/source/boot/boot-132/i386/boot2/lzss.c).
+
 To analyze the kernelcache we will use jtool2.  
 jtool2 will automatically decompress the kernel and it can be helpful in symbolication of the stripped kernels.  
 To analyze the kernelcache you need to type:
