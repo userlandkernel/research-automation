@@ -22,14 +22,15 @@ Then the firmware browser will contact the API at ipsw.me.
 Next it opens tihmstar's partialzip browser on the retrieved firmware url.  
 It will take some time to initialize, and when it's done you will get a shell.  
 
-```$ 
-
+```
+$ 
 
 
 ```
 
 All you now have to do is simply type ls to list files in the remote firmware.  
-```$ ls
+```
+$ ls
          0 d Firmware/
     264948 f BuildManifest.plist
       1385 f Restore.plist
@@ -40,14 +41,16 @@ All you now have to do is simply type ls to list files in the remote firmware.
 ```
 
 Now to get the kernelcache you just choose the one matching your device (ex: n71):  
-```$ get kernelcache.release.n71
+```
+$ get kernelcache.release.n71
 getting: kernelcache.release.n71
 100% [===================================================================================================>]
 download succeeded
 ```
 
 And to finish with when it has downloaded you type
-```$ exit
+```
+$ exit
 
 
 ```
