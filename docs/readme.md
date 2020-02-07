@@ -112,5 +112,5 @@ Disassemblers you may find useful are:
 - You need patience (around 2.3 hours per kernelcache for IDA + diaphora to analyze all, thus 4 hours and 20 mins in total)
 - You need [diaphora](http://diaphora.re/)
 
-## If you want to dump boot arguments to see what changed
+### If you want to dump boot arguments to see what changed
 - Use ```dumpbootarg`` from this repo
