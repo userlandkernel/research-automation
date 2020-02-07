@@ -1,6 +1,12 @@
 # Research Automation
 Automates your research with scripts
 
+## fwbrowse (BASH)
+iOS Firmware browser.  
+Provided an iOS Version and Device Identifier this script automatically retrieves the corresponding firmware url from ipsw.me.  
+It will automatically launch partial zip browser (from t1hmstar) so you can choose what files you want to download.  
+
+
 ## jtool2c (BASH)
 Uses jtool2 to generate a c file for using iOS kernel symbol offsets  
 If jtool2 is not installed it will download it and install it into ```/usr/local/bin```  
