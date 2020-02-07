@@ -22,7 +22,11 @@ Then the firmware browser will contact the API at ipsw.me.
 Next it opens tihmstar's partialzip browser on the retrieved firmware url.  
 It will take some time to initialize, and when it's done you will get a shell.  
 
-```$ ```
+```$ 
+
+
+
+```
 
 All you now have to do is simply type ls to list files in the remote firmware.  
 ```$ ls
@@ -44,4 +48,6 @@ download succeeded
 
 And to finish with when it has downloaded you type
 ```$ exit
+
+
 ```
