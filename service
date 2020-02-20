@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+
+##################################################################
+##  LINUX systemd like service management script for launchd    ##
+##  (c) 2020, Sem Voigtländer (@userlandkernel)                 ##
+##  Licensed under the MIT License                              ##
+##################################################################
+
+
+# Where to look for launch directories, you can also add these to your .bashrc
+LAUNCHDIRS="$LAUNCHDIRS:/Library/LaunchDaemons/"
+LAUNCHDIRS="$LAUNCHDIRS:/System/Library/LaunchDaemons"
+LAUNCHDIRS="$LAUNCHDIRS:/AppleInternal/System/Library/LaunchDaemons"
+LAUNCHDIRS="$LAUNCHDIRS:/AppleInternal/Library/LaunchDaemons"
+
+# Function to control a launchdaemon service
+
+function control() {
+
+  # We support recursion thus check for arguments
+  
+  # If we have a propertylist as first argument update the global
+	if [ ! -z "$1" ]; then
+		PLIST="$1";
+	fi
+
+  # If we have an action as second argument update the global
+	if [ ! -z "$2" ]; then
+		ACTION="$2";
+	fi
+
+  # Action to start a launchdeamon
+	if [[ "$ACTION" == "start" ]]; then
+		echo "Staring $SERVICE: " | tr -d '\n';
+		RESULT=$(sudo launchctl load "$PLIST" 2>&1) # Perform the launchctl operation on the service
+
+    # Check if service has already loaded
+		if echo "$RESULT" | grep -q "already loaded"; then
+			echo "Already running.";
+
+    # Check if service started successfully
+		elif [ -z "$RESULT" ]; then
+			echo "Running.";
+
+    # If there is any output that doesnt include already loaded then its an error
+		else
+			echo "Failed to start.";
+		fi
+
+	elif [[ "$ACTION" == "stop" ]]; then
+		echo "Stopping $SERVICE: " | tr -d '\n';
+		RESULT=$(sudo launchctl unload "$PLIST" 2>&1)
+
+                if echo "$RESULT" | grep -q "Could not find"; then
+                        echo "Already stopped.";
+
+                elif [ -z "$RESULT" ]; then
+                        echo "Stopped.";
+
+                else
+                        echo "Failed to stop.";
+                fi
+
+  # Using recursion call stop and start on the service
+	elif [[ "$ACTION" == "restart" ]]; then
+		echo "Restarting $SERVICE...";
+		control "$PLIST" stop
+		control "$PLIST" start
+    
+  # We have a bogus action so reload it
+	else
+		echo "Invalid action: $ACTION"
+		exit 1;
+	fi
+}
+
+# List all launchdaemons
+function list() {
+
+	for LAUNCHDIR in $(echo $LAUNCHDIRS | tr ':' '\n');do
+
+		if [ ! -d "$LAUNCHDIR" ]; then
+			continue;
+		fi
+
+		SERVICES=$(ls "$LAUNCHDIR")
+
+		for SVC in "$SERVICES";do
+			echo "$SVC" | sed -e 's/\.plist//g'
+		done
+	done
+}
+
+function main() {
+
+	if [[ "$USER" != "root" ]]; then
+		echo "Please run this as root or with sudo";
+		exit 1;
+	fi
+
+	SERVICE="$1"
+	ACTION="$2"
+
+	if [ "$#" -eq 1 ]; then
+		if [[ "$1" == "-l" ]]; then
+			list
+			exit 0;
+                elif [[ "$1" == "--list" ]]; then
+			list
+			exit 0;
+		elif [[ "$1" == "list" ]]; then
+			list
+			exit 0;
+		fi
+	fi
+
+	if [ "$#" -lt 2 ];then
+		echo "Usage: service [service name] [action]"
+    echo "Or: service -l\t\tList launch services"
+    echo " "
+    echo "Example usage:"
+		echo "\tservice com.apple.powerlogd start"
+    echo " "
+		echo "\tservice -l"
+    echo " "
+		exit 1;
+	fi
+
+  # Replace the directory seperator with newlines and iterate over each line
+	for LAUNCHDIR in $(echo $LAUNCHDIRS | tr ':' '\n');do
+  
+    # Check if the directory exists and skip if it doesnt
+		if [ ! -d "$LAUNCHDIR" ]; then
+			continue;
+		fi
+    
+    # Check if the targeted launchd service exists in the directory
+		if [ -f "$LAUNCHDIR/$SERVICE.plist" ]; then
+			PLIST="$LAUNCHDIR/$SERVICE.plist" # Set the global
+			break;
+		fi
+    
+	done
+
+  # If the service was not found then the PLIST global is empty
+	if [ -z "$PLIST" ]; then
+		echo "No such service $SERVICE"
+		exit 1;
+	else
+		control # Call control on the service to perform the wanted action
+	fi
+  
+}
+
+main "$@" # Forward all arguments to the main() function
