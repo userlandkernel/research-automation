@@ -17,32 +17,32 @@ LAUNCHDIRS="$LAUNCHDIRS:/AppleInternal/Library/LaunchDaemons"
 
 function control() {
 
-  # We support recursion thus check for arguments
-  
-  # If we have a propertylist as first argument update the global
+	# We support recursion thus check for arguments
+
+	# If we have a propertylist as first argument update the global
 	if [ ! -z "$1" ]; then
 		PLIST="$1";
 	fi
 
-  # If we have an action as second argument update the global
+	# If we have an action as second argument update the global
 	if [ ! -z "$2" ]; then
 		ACTION="$2";
 	fi
 
-  # Action to start a launchdeamon
+	# Action to start a launchdeamon
 	if [[ "$ACTION" == "start" ]]; then
 		echo "Staring $SERVICE: " | tr -d '\n';
 		RESULT=$(sudo launchctl load "$PLIST" 2>&1) # Perform the launchctl operation on the service
 
-    # Check if service has already loaded
+	# Check if service has already loaded
 		if echo "$RESULT" | grep -q "already loaded"; then
 			echo "Already running.";
 
-    # Check if service started successfully
+	# Check if service started successfully
 		elif [ -z "$RESULT" ]; then
 			echo "Running.";
 
-    # If there is any output that doesnt include already loaded then its an error
+	# If there is any output that doesnt include already loaded then its an error
 		else
 			echo "Failed to start.";
 		fi
@@ -51,23 +51,23 @@ function control() {
 		echo "Stopping $SERVICE: " | tr -d '\n';
 		RESULT=$(sudo launchctl unload "$PLIST" 2>&1)
 
-                if echo "$RESULT" | grep -q "Could not find"; then
-                        echo "Already stopped.";
+		if echo "$RESULT" | grep -q "Could not find"; then
+			echo "Already stopped.";
 
-                elif [ -z "$RESULT" ]; then
-                        echo "Stopped.";
+		elif [ -z "$RESULT" ]; then
+			echo "Stopped.";
 
-                else
-                        echo "Failed to stop.";
-                fi
+		else
+			echo "Failed to stop.";
+		fi
 
-  # Using recursion call stop and start on the service
+	# Using recursion call stop and start on the service
 	elif [[ "$ACTION" == "restart" ]]; then
 		echo "Restarting $SERVICE...";
 		control "$PLIST" stop
 		control "$PLIST" start
-    
-  # We have a bogus action so reload it
+
+	# We have a bogus action so reload it
 	else
 		echo "Invalid action: $ACTION"
 		exit 1;
@@ -77,18 +77,23 @@ function control() {
 # List all launchdaemons
 function list() {
 
+	# Start directory iteration
 	for LAUNCHDIR in $(echo $LAUNCHDIRS | tr ':' '\n');do
-
+		
+		# Check if the directory exists and skip if it does not
 		if [ ! -d "$LAUNCHDIR" ]; then
 			continue;
 		fi
 
-		SERVICES=$(ls "$LAUNCHDIR")
+		# List all launch services in the directory
+		SERVICES=$(ls "$LAUNCHDIR" | grep ".plist") # We use grep to make sure only plists are used
 
+		# Start service iteration
 		for SVC in "$SERVICES";do
 			echo "$SVC" | sed -e 's/\.plist//g'
-		done
-	done
+		done # End of service iteration
+		
+	done # End of directory iteration
 }
 
 function main() {
@@ -116,33 +121,33 @@ function main() {
 
 	if [ "$#" -lt 2 ];then
 		echo "Usage: service [service name] [action]"
-    echo "Or: service -l\t\tList launch services"
-    echo " "
-    echo "Example usage:"
-		echo "\tservice com.apple.powerlogd start"
-    echo " "
-		echo "\tservice -l"
-    echo " "
+    		echo -e "Or: service -l\t\tList launch services"
+    		echo " "
+    		echo "Example usage:"
+		echo -e "\tservice com.apple.powerlogd start"
+    		echo " "
+		echo -e "\tservice -l"
+    		echo " "
 		exit 1;
 	fi
 
-  # Replace the directory seperator with newlines and iterate over each line
+	# Replace the directory seperator with newlines and iterate over each line
 	for LAUNCHDIR in $(echo $LAUNCHDIRS | tr ':' '\n');do
   
-    # Check if the directory exists and skip if it doesnt
-		if [ ! -d "$LAUNCHDIR" ]; then
-			continue;
-		fi
+	# Check if the directory exists and skip if it doesnt
+	if [ ! -d "$LAUNCHDIR" ]; then
+		continue;
+	fi
     
-    # Check if the targeted launchd service exists in the directory
-		if [ -f "$LAUNCHDIR/$SERVICE.plist" ]; then
-			PLIST="$LAUNCHDIR/$SERVICE.plist" # Set the global
-			break;
-		fi
+	# Check if the targeted launchd service exists in the directory
+	if [ -f "$LAUNCHDIR/$SERVICE.plist" ]; then
+		PLIST="$LAUNCHDIR/$SERVICE.plist" # Set the global
+		break;
+	fi
     
 	done
 
-  # If the service was not found then the PLIST global is empty
+	# If the service was not found then the PLIST global is empty
 	if [ -z "$PLIST" ]; then
 		echo "No such service $SERVICE"
 		exit 1;
