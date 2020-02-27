@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+if [ -z "$1" ]; then
+	echo "Usage: $0 /path/to/sqlite3.db";
+	exit 1;
+fi
+
+DATABASE="$1"
+TABLES=$(sqlite3 -header $DATABASE -line ".tables")
+for TABLE in $TABLES;do
+	echo -e "\t$TABLE: "
+	echo -e "\t--------------"
+	DATA=$(sqlite3 -header $DATABASE -line "SELECT * FROM \"$TABLE\";")
+	while IFS= read -r line;do
+		echo -e "\t\t$line";
+	done <<< "$DATA"
+	echo " "
+	echo -e "\t--------------"
+	echo " "
+done
