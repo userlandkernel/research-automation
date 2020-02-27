@@ -1,6 +1,6 @@
 # Automation script for downloading XNU directly from Apple
 ## Usage: Break some X into a halfie sip some soda throwin it up yo throat now show the world you love to rock the boat
-
+## Manual: https://www.youtube.com/watch?v=IRvGZffXhfk
 
 # Define y'all where is the tarball
 XNU_TAR_PROTOCOL="https"
