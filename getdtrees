@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+API_BASE="https://api.ipsw.me"
+API_VERSION="v4"
+API_URL="$API_BASE/$API_VERSION"
+
+if [ -z "$DTREE_DIR" ]; then
+	DTREE_DIR="dtrees"
+fi
+
+function EXTENSION() {
+	FILE="$1"
+	echo "${FILE##*.}"
+}
+
+function API() {
+	curl -s "$API_URL/$1" | jq
+}
+
+function LIST_DTREES() {
+	pzb "$1" --list=Firmware/all_flash | grep "DeviceTree" | awk '{print $3}'
+}
+
+function DOWNLOAD_DTREES() {
+	for DTREE in $DTREES;do
+		DTREENAME=$(echo "$DTREE" | sed -e 's/Firmware\/all_flash\///g' -e 's/all_flash\.//g')
+		DTREENAME=$(echo "$DTREENAME" | tr -d '/' | sed -e 's/.production//g' -e 's/.DeviceTree/DeviceTree/g')
+		echo "Downloading $DTREENAME..."
+		pzb "$FIRMWARE" --get "Firmware/all_flash/$DTREE" -o "$DTREENAME" > /dev/null
+		DTREE_EXT=$(EXTENSION $DTREENAME)
+
+		if [[ "$DTREE_EXT" == "img3" ]]; then
+
+			DTREE_BIN=$(echo "$DTREENAME" | sed -e "s/$DTREE_EXT/bin/g")
+			DTREE_TXT=$(echo "$DTREENAME" | sed -e "s/$DTREE_EXT/txt/g")
+
+			echo "Extracting image3 file to $DTREE_BIN..."
+			./decodeimg3.pl "$DTREENAME" -o "$DTREE_DIR/$DEVICE/$DTREE_BIN"
+			dtdump -v "$DTREE_DIR/$DEVICE/$DTREE_BIN" > "$DTREE_DIR/$DEVICE/$DTREE_TXT"
+			mv "$DTREENAME" "$DTREE_DIR/$DEVICE/"
+
+		elif [[ "$DTREE_EXT" == "im4p" ]]; then
+			echo "Extracting image4 payload"
+			DTREE_BIN=$(echo "$DTREENAME" | sed -e "s/$DTREE_EXT/bin/g")
+			img4tool -e "$DTREENAME" -o "$DTREE_DIR/$DEVICE/$DTREE_BIN"
+			dtdump -v "$DTREE_DIR/$DEVICE/$DTREE_BIN" > "$DTREE_DIR/$DEVICE/$DTREE_TXT"
+			mv "$DTREENAME" "$DTREE_DIR/$DEVICE/"
+
+		elif [[ "$DTREE_EXT" == "plist" ]]; then
+			plutil -p "$DTREENAME"
+			rm "$DTREENAME"
+		fi
+
+	done
+}
+
+echo "Retrieving list of devices..."
+DEVICES=$(API devices)
+DEVICES=$(echo "$DEVICES" | grep "identifier" | tr -d '\t":' | sed -e 's/  //g' -e 's/identifier //g' -e 's/.$//' | sort -u)
+
+for DEVICE in $DEVICES;do
+
+	echo "Retrieving firmware for $DEVICE..."
+	mkdir -p "$DTREE_DIR/$DEVICE"
+	FIRMWARE=$(API "device/$DEVICE?type=ipsw" | grep "url" | head -n 1)
+	FIRMWARE=$(echo "$FIRMWARE" | tr -d '"' | sed -e 's/  //g' -e 's/url: //g' -e 's/.$//')
+
+	echo "Retrieving list of device trees in firmware..."
+	DTREES=$(LIST_DTREES "$FIRMWARE")
+
+	echo "Downloading device trees..."
+	DOWNLOAD_DTREES
+done
+
