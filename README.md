@@ -24,6 +24,10 @@ This is the best approach to reverse kernel driver userclients their selectors.
 The script is lazily written, it should be updated by someone who knows idapython a bit better.  
 Usage: In IDA choose ```File>Script File...``` and choose ```iokitrev.py```, output will be in the IDA console.  
 
+## update-xnu.sh (BASH)
+Retrieves, extracts and commits the latest XNU tarball from opensource.apple.com to a git repository
+Usage is simple, change the git configuration in the script to your own repository and run it.
+
 ## Special info
 On ARMv7 (32-bit) devices Apple has a JTAG interface that can be enabled through a boot arg (dcc=1) [See more here](https://github.com/UKERN-Developers/darwin-xnu/blob/6ea0ae33271d25e3e29ae0431068f3f3faeda9a3/pexpert/arm/pe_serial.c#L846)  
 The boot arg is still present on ARM64 devices but will lead to a panic as it is unimplemented. [See more here](https://github.com/UKERN-Developers/darwin-xnu/blob/6ea0ae33271d25e3e29ae0431068f3f3faeda9a3/pexpert/arm/pe_serial.c#L173)  
