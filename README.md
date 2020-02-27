@@ -28,6 +28,11 @@ Usage: In IDA choose ```File>Script File...``` and choose ```iokitrev.py```, out
 Retrieves, extracts and commits the latest XNU tarball from opensource.apple.com to a git repository.  
 Usage is simple, change the git configuration in the script to your own repository and run it.  
 
+## sqlite3dump (BASH)
+Prints out an SQLite3 database in a human readable format.  
+No need to know the tables or whatsoever, the script will figure these out.  
+Usage is simple, provide a path to a SQLite3 database and the script will print it out nicely.
+
 ## Special info
 On ARMv7 (32-bit) devices Apple has a JTAG interface that can be enabled through a boot arg (dcc=1) [See more here](https://github.com/UKERN-Developers/darwin-xnu/blob/6ea0ae33271d25e3e29ae0431068f3f3faeda9a3/pexpert/arm/pe_serial.c#L846)  
 The boot arg is still present on ARM64 devices but will lead to a panic as it is unimplemented. [See more here](https://github.com/UKERN-Developers/darwin-xnu/blob/6ea0ae33271d25e3e29ae0431068f3f3faeda9a3/pexpert/arm/pe_serial.c#L173)  
