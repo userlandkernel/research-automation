@@ -1,0 +1,64 @@
+## NANO SYNTAX FILE FOR ARM 32-bit and 64-bit ASSEMBLY
+## (c) 2020, Sem Voigtländer
+
+syntax "s" "\.(S|s|arm|ARM)$"
+
+##icolor is case-insensitive color
+##For { r1 , r2 , r3 }
+icolor green "\{\s*((r[0-9]+|[a-z]+)\s*(,\s*(r[0-9]+|[a-z]+)\s*)*)?\}"
+##For { s3-s7 }
+icolor green "\{\s*s[0-9]+-s[0-9]+\s*\}"
+icolor green "\{\s*d[0-9]+-d[0-9]+\s*\}"
+icolor green "\{\s*q[0-9]+-q[0-9]+\s*\}"
+##Low-power version
+##icolor green "\[|\]|\{|\}"
+
+##Arithematic instructions
+icolor brightmagenta "\b(ADD|ADC|SUB|SBC|RSB|RSC|[SU]M(UL|LA)L|M(UL|LA)|ASR|LS(L|R)|ROR|RRX|AND|EOR|ORR|ORN|BIC)S?(EQ|NE|CS|HS|CC|LO|MI|PL|VS|VC|HI|LS|GE|LT|GT|LE|AL)?\b"
+icolor brightmagenta "\b(add|adc|sub|sbc|rsb|rsc|[su]m(ul|la)l|m(ul|la)|asr|ls(l|r)|ror|rrx|and|eor|orr|orn|bic)s?(eq|ne|cs|hs|cc|lo|mi|pl|vs|vc|hi|ls|ge|lt|gt|le|al)?\b"
+icolor brightmagenta "\b(mls|umall|sm(m(ul|la|ls)r?|u[as]dx?|l[as]l?dx?)|[su]div|cmp|cmn|tst|teq|clz|bf[ci]|[su]bfx|pkh(bt|tb)|[su]xta?[hb](16)?|rbit|rev(16|sh)?|sel)(eq|ne|cs|hs|cc|lo|mi|pl|vs|vc|hi|ls|ge|lt|gt|le|al)?\b"
+icolor brightmagenta "\b((s|q|sh|u|uq|uh)?((add|sub)(8|16)|asx|sax))|usada?8)(eq|ne|cs|hs|cc|lo|mi|pl|vs|vc|hi|ls|ge|lt|gt|le|al)?\b"
+
+##Memory/Register instructions
+icolor brightblue "\b(m(ov(w|t)?|vn)s?|ldr(s?(b|h))?|str(s?(b|h))?|LDP|STP|ADR|ADRP|PUSH|POP|(STM|LDM)(I|D)(A|B)|SWPB?)(EQ|NE|CS|HS|CC|LO|MI|PL|VS|VC|HI|LS|GE|LT|GT|LE|AL)?\b"
+##Control instructions
+icolor brightgreen "\bB(L|X|LX|R)?(EQ|NE|HS|LO|CC|CS|MI|PL|VS|VC|HI|LS|GE|LT|GT|LE|AL)?\b"
+icolor brightgreen "\b(SWI|SVC|NOP|CBN?Z|TB[BH]|IT[TE]{,3})\b"
+##FPU instructions
+icolor brightwhite "\bv(mov|ldr|str|push|pop|ldmia|stmdb|msr|mrs)(eq|ne|cs|hs|cc|lo|mi|pl|vs|vc|hi|ls|ge|lt|gt|le|al)?\b"
+icolor brightwhite "\bv(add|sub|div|neg|abs|sqrt|n?mul|n?ml[as]|n?fm[as]|cmp|mov|recpe|rsqrte)(eq|ne|cs|hs|cc|lo|mi|pl|vs|vc|hi|ls|ge|lt|gt|le|al)?\.(f(32|64)|(i|u|s)(8|16|32))\b"
+icolor brightwhite "\bv(cvt(eq|ne|cs|hs|cc|lo|mi|pl|vs|vc|hi|ls|ge|lt|gt|le|al)?\.(f(32|64)|s32|u32)\.(f(32|64)|s32|u32))\b"
+##NEON instructions
+icolor brightwhite "\b(veor|vmov.[isu](8|16|32|64))\b"
+##Registers
+icolor yellow "\b(x|w)([0-9]|1[0-9]|2[0-9]|3[0-9])\b"
+icolor yellow "\b((r|q)([0-9]|1[0-5])|fp|sp|lr|pc|cpsr(_[cxsf])?|apsr(_nvcz)?|spsr|(s|d)([1-2]?[0-9]|3[0-1])|fpscr)\b"
+
+##DSP Registers
+icolor yellow "\b((ar|[mn])[0-7]|d[0-9][mlh]|lc)\b"
+
+##Constants
+icolor brightcyan "!|($|#|=)[+-]?([0-9]+|0x[0-9a-f]+)"
+##icolor brightcyan "(!|[$#=][a-zA-Z0-9_$.+-]+)"
+icolor brightcyan "[$#=]((ar|[mn])[0-7]|d[0-9][mlh]|lc)"
+icolor brightcyan "[$#=][+-]?0[a-zA-Z][+-]?[0-9]*\.[0-9]*(e[+\-]?[0-9]+)?"
+icolor brightcyan "[$#=][+-]?([0-9]*\.[0-9]+|[0-9]+\.)(e[+\-]?[0-9]+)?"
+
+color red "\<[A-Z_]{2,}\>"
+color brightgreen "\.(data|subsection|text|bss|syntax)|unified|divided"
+color green "\.(b?align|file|globl|global|hidden|section|size|type|weak|thumb_func)"
+color brightyellow "\.(ascii|asciz|byte|double|float|hword|int|long|short|single|struct|word|space|skip)"
+icolor brightred "[[:space:]]*[.0-9A-Z_$\@]*:"
+color brightcyan "^[[:space:]]*#[[:space:]]*(define|undef|elif|warning|error)"
+color brightcyan "(^[[:space:]]*#[[:space:]]*|\.)(include|ifn?def|endif|elseif|else|if|err|error|fail)"
+color brightcyan "\.(macro|endm|purgem|altmacro|rept|endr|equ(iv)?|set|(un)?req)"
+## Highlight strings (note: VERY resource intensive)
+color brightyellow "<[^= 	]*>" ""(\\.|[^"])*""
+color brightyellow start=""(\\.|[^"])*\\[[:space:]]*$" end="^(\\.|[^"])*""
+##Characters are represented as '<char>
+color brightyellow "'." 
+## Highlight comments
+color cyan "(//|@|;).*"
+color cyan start="/\*" end="\*/"
+## Highlight trailing whitespace
+color ,green "[[:space:]]+$"
