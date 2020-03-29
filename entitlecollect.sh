@@ -10,9 +10,9 @@ function GetAllExecutables() {
   find / -type f -executable
 }
 
-function GetEntitlements() {
+function GetAllEntitlements() {
   for exe in $(GetAllExecutables);do
-    ent=$(jtool2 --ent)
+    ent=$(jtool2 --ent "$exe")
     echo "$ent" | grep "task_for_pid-allow" > /dev/null
     if [ $? -eq 0 ]; then
       echo "$exe has task_for_pid-allow entitlement!"
@@ -20,7 +20,21 @@ function GetEntitlements() {
     else
       echo "$ent" > "entitlements/$(basename $exe).plist"
     fi
-  ;done
+  done
 }
 
-
+function GetEntitlements() {
+  BINLIST="$1"
+  for exe in $(cat $BINLIST);do
+    if [ -f "$exe" ]; then
+      ent=$(jtool2 --ent "$exe")
+      echo "$ent" | grep "task_for_pid-allow" > /dev/null
+      if [ $? -eq 0 ]; then
+        echo "$exe has task_for_pid-allow entitlement!"
+        echo "$ent" > "entitlements/tfp/$(basename $exe).plist"
+      else
+        echo "$ent" > "entitlements/$(basename $exe).plist"
+      fi
+    fi
+  done
+}
